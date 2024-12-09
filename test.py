@@ -1,104 +1,106 @@
+import os
 import sys
 from PyQt5.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QHBoxLayout,
-    QLineEdit, QComboBox, QRadioButton, QButtonGroup,
-    QLabel, QPushButton, QFrame
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
+    QLabel, QFileDialog, QTextEdit, QListWidget, QGraphicsView, QGraphicsScene
 )
+from PyQt5.QtCore import Qt
 
-
-class TestApp(QWidget):
+class SaveManagerApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.init_ui()
-        self.count=0
 
-    def init_ui(self):
-        self.setWindowTitle('User Input and Output Example')
-        self.setGeometry(100, 100, 600, 400)
+        self.setWindowTitle("Save Manager Test 01")
+        self.setGeometry(100, 100, 800, 600)
 
-        # 主布局：水平分割，左为输入，右为输出
-        main_layout = QHBoxLayout(self)
+        # built-in saves folder
+        self.saves_folder = "saves"
+        if not os.path.exists("saves"):
+            os.makedirs("saves")
 
-        # 左侧:输入区域
-        input_frame = QFrame(self)  
-        input_frame.setFixedWidth(200)  
-        input_layout = QVBoxLayout(input_frame)
+        # main widget
+        main_widget = QWidget()
+        main_layout = QHBoxLayout(main_widget)
 
-        # 输入组件 1：文本框
-        self.text_input = QLineEdit()
-        self.text_input.setPlaceholderText('Enter text...')
-        input_layout.addWidget(self.text_input)
+        # LEFT
+        left_layout = QVBoxLayout()
+        self.init_left_section(left_layout)
 
-        # 输入组件 2：下拉框
-        self.dropdown = QComboBox()
-        self.dropdown.addItems(['Option 1', 'Option 2', 'Option 3'])
-        input_layout.addWidget(self.dropdown)
+        # MIDDLE
+        middle_layout = QVBoxLayout()
+        self.init_middle_section(middle_layout)
 
-        # 输入组件 3：单选按钮
-        self.radio_group = QButtonGroup(self)
-        self.radio_buttons = []
-        for i, label in enumerate(['Choice A', 'Choice B', 'Choice C']):
-            radio_button = QRadioButton(label)
-            self.radio_group.addButton(radio_button, i)
-            input_layout.addWidget(radio_button)
-            self.radio_buttons.append(radio_button)
+        # RIGHT
+        right_layout = QVBoxLayout()
+        self.init_right_section(right_layout)
 
-        # submit按钮
-        self.submit_button = QPushButton('Submit')
-        self.submit_button.clicked.connect(self.update_outputs)
-        input_layout.addWidget(self.submit_button)
+        # update main
+        main_layout.addLayout(left_layout, 2)  
+        main_layout.addLayout(middle_layout, 2)  
+        main_layout.addLayout(right_layout, 4) 
 
-        # 右侧: 输出
-        output_frame = QFrame(self)  
-        output_frame.setFixedWidth(300)  
-        output_layout = QVBoxLayout(output_frame)
+        self.setCentralWidget(main_widget)
 
-        # 输出组件 1：文本显示
-        self.text_output = QLabel('Output 1: ')
-        output_layout.addWidget(self.text_output)
+    def init_left_section(self, layout):
+        # save file location
+        label = QLabel("Select Save Location:", self)
+        label.setAlignment(Qt.AlignLeft)
+        layout.addWidget(label)
 
-        # 输出组件 2：下拉框选项显示
-        self.dropdown_output = QLabel('Output 2: ')
-        output_layout.addWidget(self.dropdown_output)
+        # folder selection
+        btn_select_folder = QPushButton("Open Folder", self)
+        btn_select_folder.clicked.connect(self.select_folder)
+        layout.addWidget(btn_select_folder)
 
-        # 输出组件 3：单选选项显示
-        self.radio_output = QLabel('Output 3: ')
-        output_layout.addWidget(self.radio_output)
-
-        # 输出组件 4：最下方的指定字符
-        self.final_output = QLabel('') 
-        output_layout.addWidget(self.final_output)
-
-        # 将输入和输出布局加入主布局
-        main_layout.addWidget(input_frame)
-        main_layout.addWidget(output_frame)
-
-        # 设置主布局
-        self.setLayout(main_layout)
-
-    def update_outputs(self):
-        # 更新文本框
-        self.count+=1
-        text = self.text_input.text()
-        self.text_output.setText(f'Output 1: {text}')
-
-        # 更新下拉框
-        dropdown_value = self.dropdown.currentText()
-        self.dropdown_output.setText(f'Output 2: {dropdown_value}')
-
-        # 更新单选按钮
-        selected_radio = self.radio_group.checkedButton()
-        if selected_radio:
-            radio_value = selected_radio.text()
-            self.radio_output.setText(f'Output 3: {radio_value}')
-        else:
-            self.radio_output.setText('Radio Output: None')
-
-        self.final_output.setText(f'戳戳最喜欢的姐姐{self.count}次')
+        # show path
+        self.folder_path_display = QTextEdit(self)
+        self.folder_path_display.setReadOnly(True)
+        layout.addWidget(self.folder_path_display)
 
 
-if __name__ == '__main__':
+    def init_middle_section(self, layout):
+
+        # show saved games (built-in)
+        label = QLabel("Saved Games", self)
+        label.setAlignment(Qt.AlignLeft)
+        layout.addWidget(label)
+
+        # show
+        self.saved_games_list = QListWidget(self)
+        self.update_saves_list()
+        layout.addWidget(self.saved_games_list)
+
+
+    def init_right_section(self, layout):
+
+        # canvas, for managing save files
+        canvas_label = QLabel("UI (Canvas)", self)
+        canvas_label.setAlignment(Qt.AlignCenter)
+
+        # canvas
+        scene = QGraphicsScene(self)
+        canvas = QGraphicsView(scene, self)
+        layout.addWidget(canvas_label)
+        layout.addWidget(canvas)
+
+    def select_folder(self):
+
+        # select a folder
+        folder_path = QFileDialog.getExistingDirectory(self, "Select Folder")
+        if folder_path:
+            self.folder_path_display.setText(folder_path)
+
+    def update_saves_list(self):
+
+        # update files
+        self.saved_games_list.clear()
+        if os.path.exists(self.saves_folder):
+            files = os.listdir(self.saves_folder)
+            for file in files:
+                self.saved_games_list.addItem(file)
+
+if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = TestApp()
+    window = SaveManagerApp()
     window.show()
     sys.exit(app.exec_())
