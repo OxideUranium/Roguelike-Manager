@@ -5,7 +5,7 @@ import subprocess
 file_name = "test.py"
 output_name = "test.exe"
 
-command = ["pyinstaller", "--onefile", file_name, "--name", output_name ]
+command = ["pyinstaller", "--onefile", "--noconsole", file_name, "--name", output_name ]
 
 print(f"Running: {command}")
 

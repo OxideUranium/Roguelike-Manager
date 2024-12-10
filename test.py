@@ -2,9 +2,21 @@ import os
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QFileDialog, QTextEdit, QListWidget, QGraphicsView, QGraphicsScene
+    QLabel, QFileDialog, QTextEdit, QListWidget, QGraphicsView, QGraphicsScene, 
+    QAction, QMenuBar, QStatusBar
 )
 from PyQt5.QtCore import Qt
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+
+class FolderEventHandler(FileSystemEventHandler):
+    def __init__(self, update_callback):
+        super().__init__()
+        self.update_callback = update_callback
+
+    def on_any_event(self, event):
+        # update callback on any events
+        self.update_callback()
 
 class SaveManagerApp(QMainWindow):
     def __init__(self):
@@ -18,9 +30,32 @@ class SaveManagerApp(QMainWindow):
         if not os.path.exists("saves"):
             os.makedirs("saves")
 
+        self.selected_folder = ""
+        self.observers = Observer()
+
+        self.init_ui()
+
+
+
+    def init_ui(self):
+
         # main widget
         main_widget = QWidget()
-        main_layout = QHBoxLayout(main_widget)
+        self.main_layout = QVBoxLayout(main_widget)
+
+        # ==TOP menu part
+        self.menu_bar = QMenuBar(self)
+        self.setMenuBar(self.menu_bar)
+
+        self.file_menu = self.menu_bar.addMenu("File")
+        self.edit_menu = self.menu_bar.addMenu("Edit")
+
+        file_menu_open_action = QAction("Open", self)
+        file_menu_open_action.triggered.connect(self.select_folder)
+        self.file_menu.addAction(file_menu_open_action)
+
+        # ==Content part
+        self.content_layout = QHBoxLayout()
 
         # LEFT
         left_layout = QVBoxLayout()
@@ -35,32 +70,39 @@ class SaveManagerApp(QMainWindow):
         self.init_right_section(right_layout)
 
         # update main
-        main_layout.addLayout(left_layout, 2)  
-        main_layout.addLayout(middle_layout, 2)  
-        main_layout.addLayout(right_layout, 4) 
+        self.content_layout.addLayout(left_layout, 2)  
+        self.content_layout.addLayout(middle_layout, 2)  
+        self.content_layout.addLayout(right_layout, 4) 
+
+        self.main_layout.addLayout(self.content_layout)
 
         self.setCentralWidget(main_widget)
+        
 
     def init_left_section(self, layout):
         # save file location
-        label = QLabel("Select Save Location:", self)
-        label.setAlignment(Qt.AlignLeft)
-        layout.addWidget(label)
+        self.left_folder_path_display = QLabel("", self)
 
-        # folder selection
-        btn_select_folder = QPushButton("Open Folder", self)
-        btn_select_folder.clicked.connect(self.select_folder)
-        layout.addWidget(btn_select_folder)
+        if self.selected_folder == "":
+            self.left_folder_path_display.setText("No Folder Selected")
+            layout.addWidget(self.left_folder_path_display)
+            return
+        else:
+            # show content of the folder
+            self.left_folder_path_display.setText(self.selected_folder)
+            layout.addWidget(self.left_folder_path_display)
+            file_list = os.listdir(self.selected_folder)
+            for file in file_list:
+                label = QLabel(file, self)
+                layout.addWidget(label)
+                label = QLabel(file, self)
+                layout.addWidget(label)
 
-        # show path
-        self.folder_path_display = QTextEdit(self)
-        self.folder_path_display.setReadOnly(True)
-        layout.addWidget(self.folder_path_display)
 
 
     def init_middle_section(self, layout):
 
-        # show saved games (built-in)
+        # show saved games (built-in folder "saves")
         label = QLabel("Saved Games", self)
         label.setAlignment(Qt.AlignLeft)
         layout.addWidget(label)
@@ -88,7 +130,7 @@ class SaveManagerApp(QMainWindow):
         # select a folder
         folder_path = QFileDialog.getExistingDirectory(self, "Select Folder")
         if folder_path:
-            self.folder_path_display.setText(folder_path)
+            self.init_left_section(self.content_layout)
 
     def update_saves_list(self):
 
@@ -104,3 +146,4 @@ if __name__ == "__main__":
     window = SaveManagerApp()
     window.show()
     sys.exit(app.exec_())
+    
