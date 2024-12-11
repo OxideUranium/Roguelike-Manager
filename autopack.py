@@ -2,8 +2,8 @@ import os
 import subprocess
 
 
-file_name = "test.py"
-output_name = "test.exe"
+file_name = "main.py"
+output_name = "main.exe"
 
 command = ["pyinstaller", "--onefile", "--noconsole", file_name, "--name", output_name ]
 
