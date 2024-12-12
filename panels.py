@@ -3,101 +3,71 @@ import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
     QLabel, QFileDialog, QTextEdit, QListWidget, QGraphicsView, QGraphicsScene, 
-    QAction, QMenuBar, QStatusBar
+    QAction, QMenuBar, QStatusBar, QMessageBox, QSizePolicy
 )
 from PyQt5.QtCore import Qt
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-
-class MenuBar(QMenuBar):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.parent = parent
-        self.selected_folder = ""
-
-        self.file_menu = self.addMenu("File")
-        self.edit_menu = self.addMenu("Edit")
-        self.view_menu = self.addMenu("View")
-        self.help_menu = self.addMenu("Help")
-        
-        file_menu_open_action = QAction("Open", parent)
-        file_menu_open_action.triggered.connect(self.select_folder)
-        self.file_menu.addAction(file_menu_open_action)
-
-    def select_folder(self):
-        # select a folder
-        folder_path = QFileDialog.getExistingDirectory(self, "Select Folder")
-        if folder_path:
-            self.parent.selected_folder = folder_path
-
 
 class LeftPanel(QWidget): 
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
 
-        self.folder_path = ""
-
         self.layout = QVBoxLayout(self)
-        self.folder_label = QLabel("No Folder Selected", self.parent)
-        self.layout.addWidget(self.folder_label)
+        
+        # topic label
+        topic_label = QLabel("Game Files", self)
+        topic_label.setAlignment(Qt.AlignCenter)
+        self.layout.addWidget(topic_label)
 
-    def update_panel(self, folder_path):
-        while self.count():
-            item = self.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
+        # display layout
+        self.file_list = QListWidget(self)
+        self.update_panel()
+        self.layout.addWidget(self.file_list)
 
-        if not folder_path:
-            self.folder_label.setText("No Folder Selected")
-            self.addWidget(self.folder_label)
+    def update_panel(self):
+        self.file_list.clear()
+        if self.parent.selected_folder == "":
+            self.file_list.addItem("No folder selected")
         else:
-            self.folder_label.setText(f"Folder: {folder_path}")
-            self.addWidget(self.folder_label)
-
-            file_list = os.listdir(folder_path)
-            for file in file_list:
-                file_label = QLabel(file, self.parent)
-                self.addWidget(file_label)
-
+            files = os.listdir(self.parent.selected_folder)
+            for file in files:
+                self.file_list.addItem(file)
 
 
 class MiddlePanel(QWidget):
-    def __init__(self, parent, saves_folder):
+    def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-        self.saves_folder = saves_folder
-        self.saved_games_list = QListWidget(self.parent)
+        # self.parnet.saves_folder
         self.layout = QVBoxLayout(self)
 
-        self.init_ui(self.layout)
-
-    def init_ui(self, layout):
+        # topic label
+        topic_label = QLabel("Saved Files", self)
+        topic_label.setAlignment(Qt.AlignCenter)
+        self.layout.addWidget(topic_label)
 
         # show saved games (built-in folder "saves")
-        label = QLabel("Saved Games")
-        label.setAlignment(Qt.AlignLeft)
-        layout.addWidget(label)
-
-        # show
         self.saved_games_list = QListWidget(self)
         self.update_saves_list()
-        layout.addWidget(self.saved_games_list)
+        self.layout.addWidget(self.saved_games_list)
 
     def update_saves_list(self):
 
         # update files
         self.saved_games_list.clear()
-        if os.path.exists(self.saves_folder):
-            files = os.listdir(self.saves_folder)
-            for file in files:
-                self.saved_games_list.addItem(file)
+        # self.parent.saves_folder must exist
+        files = os.listdir(self.parent.saves_folder)
+        for file in files:
+            self.saved_games_list.addItem(file)
 
 
 class RightPanel(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
+
         self.layout = QVBoxLayout(self)
         self.init_ui(self.layout)
 
