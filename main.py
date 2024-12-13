@@ -2,8 +2,7 @@ import os
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QFileDialog, QTextEdit, QListWidget, QGraphicsView, QGraphicsScene, 
-    QAction, QMenuBar, QStatusBar, QMessageBox
+    QLabel, QFileDialog, QAction, QMessageBox
 )
 from PyQt5.QtCore import Qt
 import panels

@@ -1,9 +1,8 @@
 import os
 import sys
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QFileDialog, QTextEdit, QListWidget, QGraphicsView, QGraphicsScene, 
-    QAction, QMenuBar, QStatusBar, QMessageBox, QSizePolicy
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
+    QLabel, QListWidget, QGraphicsView, QGraphicsScene, QMessageBox, QSizePolicy
 )
 from PyQt5.QtCore import Qt
 from watchdog.observers import Observer
@@ -62,26 +61,54 @@ class MiddlePanel(QWidget):
         for file in files:
             self.saved_games_list.addItem(file)
 
+"""
+RightPanel structure:
+Timelin00 | Timeline01 | Timeline02 | ...
+save_01   | X          | X          | ...
+save_02   + save_02_1  | X          | ... # user selected a different option in a branching event  
+save_03   | save_03    | X          | ...
+save_04   | save_04    + save_04_1  | ... # another branching event
+...
+
+
+
+"""
+
+
 
 class RightPanel(QWidget):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
 
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         self.layout = QVBoxLayout(self)
-        self.init_ui(self.layout)
 
-    def init_ui(self, layout):
+        self.timelines = []
+        self.create_timeline("Timeline00")
 
-        # canvas, for managing save files
-        canvas_label = QLabel("UI (Canvas)", self)
-        canvas_label.setAlignment(Qt.AlignCenter)
+    def show_node_menu(self):
+        # after right-clicking on a node
+        pass
 
-        # canvas
-        scene = QGraphicsScene(self)
-        canvas = QGraphicsView(scene, self)
-        layout.addWidget(canvas_label)
-        layout.addWidget(canvas)
+    def node_selected(self):
+        # after clicking on a node
+        pass
+    
+    def create_node(self, node_name):
+        # create a new node in the selected timeline
+        pass
+
+    def show_timeline_menu(self):
+        # after right-clicking on a timeline
+        pass
+
+    def create_timeline(self, timeline_name):
+        # create a new timeline, a whole new timeline[]
+        pass
+
+
+    
 
 
 
