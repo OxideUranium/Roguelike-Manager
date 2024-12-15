@@ -40,7 +40,7 @@ class SaveManagerApp(QMainWindow):
         """
         self.left_panel = panels.LeftPanel(self)
         self.middle_panel = panels.MiddlePanel(self)
-        self.right_panel = QWidget()
+        self.right_panel = panels.RightPanel(self)
 
         self.content_layout.addWidget(self.left_panel, 2)  
         self.content_layout.addWidget(self.middle_panel, 2)  
